@@ -1,0 +1,30 @@
+export declare const createTachePrev: (data: any) => Promise<any>;
+export declare const getAllTachePrev: () => Promise<any>;
+export declare const getTacheById: (id: string) => Promise<any>;
+export declare const getTacheWithTechnicien: (id: string) => Promise<{
+    technicien: any;
+    titre: string;
+    description: string;
+    machineId: string;
+    technicienId: string;
+    type: "preventive";
+    frequence: "hebdomadaire" | "mensuel" | "trimestriel" | "annuel";
+    compteurRequis?: number;
+    dateProchaine: Date;
+    dateDerniere?: Date;
+    statut: "planifiee" | "en_cours" | "terminee";
+    _id: import("mongoose").Types.ObjectId;
+    $locals: Record<string, unknown>;
+    $op: "save" | "validate" | "remove" | null;
+    $where: Record<string, unknown>;
+    baseModelName?: string;
+    collection: import("mongoose").Collection;
+    db: import("mongoose").Connection;
+    errors?: import("mongoose").Error.ValidationError;
+    isNew: boolean;
+    schema: import("mongoose").Schema;
+    __v: number;
+}>;
+export declare const updateTachePrev: (id: string, updateData: any) => Promise<any>;
+export declare const deleteTachePrev: (id: string) => Promise<any>;
+//# sourceMappingURL=tachePreventiveService.d.ts.map

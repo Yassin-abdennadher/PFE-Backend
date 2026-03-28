@@ -1,0 +1,143 @@
+version: '3.8'
+
+services:
+  # Jenkins
+  jenkins:
+    image: jenkins/jenkins:lts
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - gmao-network
+    user: root
+    restart: unless-stopped
+
+  # PostgreSQL pour auth-service
+  postgres-auth:
+    image: postgres:15-alpine
+    container_name: postgres-auth-pfe
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: gmao_auth
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-auth-data:/var/lib/postgresql/data
+    networks:
+      - gmao-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB pour main-service
+  mongo-main-pfe:
+    image: mongo:7
+    container_name: mongo-main-pfe
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: gmao_main
+    volumes:
+      - mongo-main-data:/data/db
+    networks:
+      - gmao-network
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Auth Service
+  auth-service:
+    build: ./auth-service
+    container_name: auth-service
+    ports:
+      - "4001:4001"
+    volumes:
+      - ./auth-service:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: production
+      PORT: 4001
+      DB_HOST: postgres-auth
+      DB_PORT: 5432
+      DB_NAME: gmao_auth
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      JWT_SECRET: votre_secret_tres_long_et_complexe_123!
+      JWT_REFRESH_SECRET: un_autre_secret_refresh_456
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_EXPIRES_IN: 7d
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+    networks:
+      - gmao-network
+    restart: unless-stopped
+
+  # Main Service
+  main-service:
+    build: ./main-service
+    container_name: main-service
+    ports:
+      - "4002:4002"
+    volumes:
+      - ./main-service:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: production
+      PORT: 4002
+      DB_HOST: mongo-main-pfe
+      DB_PORT: 27017
+      DB_NAME: gmao_main
+      DB_USER: admin
+      DB_PASSWORD: password
+      MONGODB_URI: mongodb://admin:password@mongo-main-pfe:27017/gmao_main?authSource=admin
+      AUTH_SERVICE_URL: http://auth-service:4001
+    depends_on:
+      mongo-main-pfe:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - gmao-network
+    restart: unless-stopped
+
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    container_name: api-gateway
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api-gateway:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: production
+      PORT: 8000
+      AUTH_SERVICE_URL: http://auth-service:4001
+      MAIN_SERVICE_URL: http://main-service:4002
+    depends_on:
+      - auth-service
+      - main-service
+    networks:
+      - gmao-network
+    restart: unless-stopped
+
+volumes:
+  jenkins_home:
+  postgres-auth-data:
+  mongo-main-data:
+
+networks:
+  gmao-network:
+    driver: bridge

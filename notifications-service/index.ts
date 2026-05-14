@@ -1,18 +1,37 @@
-import express, { urlencoded } from 'express';
+import express from 'express';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
 import cors from 'cors';
-import dotenv from 'dotenv' ;
+import { createServer } from 'http';
+import { initSocket } from './socket/indexSocket.js';
+import notificationController from './controller/notificationsController.js';
+
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT ;
 
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(express.json());
-app.use(express.urlencoded({extended:true}));
 
-app.get('/',(req,res)=>{
-    res.json({message:"hello"});
-})
+app.use('/notifications', notificationController);
 
-app.listen(process.env.PORT,()=>{
-    console.log(`notifications service sur port ${process.env.PORT}`);
+// Health check
+app.get('/health', (req, res) => {
+    res.json({ status: 'OK', service: 'notification-service' });
 });
+
+mongoose.connect(process.env.MONGODB_URI!)
+    .then(() => console.log('✅ MongoDB connecté'))
+    .catch(err => console.error('❌ MongoDB erreur:', err));
+
+
+const server = createServer(app);
+const io = initSocket(server);
+
+
+server.listen(PORT, () => {
+    console.log(`🚀 Notification service sur port ${PORT}`);
+});
+
+export { io };

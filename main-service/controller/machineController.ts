@@ -16,7 +16,7 @@ router.post('/', authenticate, async (req: Request, res: Response) => {
 
 router.get('/', authenticate, async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Non authentifié' });
-    if (req.user.role !== 'admin' && req.user.role !== 'technicien') {
+    if (req.user.role !== 'admin' && req.user.role !== 'technicien' && req.user.role !== 'user' ) {
         return res.status(403).json({ message: 'accès interdit' });
     }
     const machines = await machineService.getAllMachine();

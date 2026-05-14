@@ -16,7 +16,7 @@ router.post('/', authenticate, async (req, res) => {
 router.get('/', authenticate, async (req, res) => {
     if (!req.user)
         return res.status(401).json({ message: 'Non authentifié' });
-    if (req.user.role !== 'admin' && req.user.role !== 'technicien') {
+    if (req.user.role !== 'admin' && req.user.role !== 'technicien' && req.user.role !== 'user') {
         return res.status(403).json({ message: 'accès interdit' });
     }
     const machines = await machineService.getAllMachine();
@@ -39,7 +39,7 @@ router.get('/:id', authenticate, async (req, res) => {
 router.put('/:id', authenticate, async (req, res) => {
     if (!req.user)
         return res.status(401).json({ message: 'Non authentifié' });
-    if (req.user.role !== 'admin' && req.user.role !== 'superviseur') {
+    if (req.user.role !== 'admin' && req.user.role !== 'technicien') {
         return res.status(403).json({ message: 'accès interdit' });
     }
     const id = req.params.id;

@@ -5,12 +5,15 @@ services:
   jenkins:
     image: jenkins/jenkins:lts
     container_name: jenkins
+    privileged: true
     ports:
       - "8080:8080"
       - "50000:50000"
     volumes:
       - jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
+      - /usr/bin/docker:/usr/bin/docker
+      - C:/Users/yassi/OneDrive/Bureau/PFE_DEV/Backend/Services:/workspace
     networks:
       - gmao-network
     user: root
@@ -48,6 +51,26 @@ services:
       MONGO_INITDB_DATABASE: gmao_main
     volumes:
       - mongo-main-data:/data/db
+    networks:
+      - gmao-network
+    healthcheck:
+      test: ["CMD-SHELL", "echo 'db.runCommand(\"ping\").ok' | mongosh localhost:27017/test --quiet"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MongoDB pour notification-service
+  mongo-notification:
+    image: mongo:7
+    container_name: mongo-notification-pfe
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: gmao_notifications
+    volumes:
+      - mongo-notification-data:/data/db
     networks:
       - gmao-network
     healthcheck:
@@ -103,11 +126,32 @@ services:
       DB_PASSWORD: password
       MONGODB_URI: mongodb://admin:password@mongo-main-pfe:27017/gmao_main?authSource=admin
       AUTH_SERVICE_URL: http://auth-service:4001
+      NOTIFICATION_SERVICE: http://notifications-service:4003/notifications
     depends_on:
       mongo-main-pfe:
         condition: service_healthy
       auth-service:
         condition: service_started
+    networks:
+      - gmao-network
+    restart: unless-stopped
+
+  # Notification Service
+  notifications-service:
+    build: ./notifications-service
+    container_name: notifications-service
+    ports:
+      - "4003:4003"
+    volumes:
+      - ./notifications-service:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: production
+      PORT: 4003
+      MONGODB_URI: mongodb://admin:password@mongo-notification:27017/gmao_notifications?authSource=admin
+    depends_on:
+      mongo-notification:
+        condition: service_healthy
     networks:
       - gmao-network
     restart: unless-stopped
@@ -126,6 +170,7 @@ services:
       PORT: 8000
       AUTH_SERVICE_URL: http://auth-service:4001
       MAIN_SERVICE_URL: http://main-service:4002
+      NOTIFICATIONS_SERVICE_URL: http://notifications-service:4003
     depends_on:
       - auth-service
       - main-service
@@ -137,6 +182,7 @@ volumes:
   jenkins_home:
   postgres-auth-data:
   mongo-main-data:
+  mongo-notification-data:
 
 networks:
   gmao-network:

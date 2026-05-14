@@ -11,9 +11,9 @@ export const createTacheCur = async (data: any) => {
 
 export const getAllTacheCur = async () => {
     try {
-        const tachesPrev = await TacheCurative.find();
-        if (!tachesPrev || tachesPrev.length === 0) throw new Error('Aucune Tache Trouvé');
-        return tachesPrev;
+        const tachesCur = await TacheCurative.find();
+        if (!tachesCur) throw new Error('Aucune Tache Trouvé');
+        return tachesCur;
     } catch (err: any) {
         return err.message;
     }

@@ -1,6 +1,7 @@
 import express from 'express';
 import * as pieceService from '../service/pieceService.js';
 import { authenticate } from '../middleware/authMiddleware.js';
+import axios from 'axios';
 const router = express.Router();
 router.post('/', authenticate, async (req, res) => {
     if (!req.user)
@@ -16,7 +17,7 @@ router.post('/', authenticate, async (req, res) => {
 router.get('/', authenticate, async (req, res) => {
     if (!req.user)
         return res.status(401).json({ message: 'Non authentifié' });
-    if (req.user.role !== 'admin' && req.user.role !== 'technicien') {
+    if (req.user.role !== 'admin' && req.user.role !== 'technicien' && req.user.role !== 'user') {
         return res.status(403).json({ message: 'accès interdit' });
     }
     const pieces = await pieceService.getAllPiece();
@@ -50,6 +51,14 @@ router.put('/:id', authenticate, async (req, res) => {
     const piece = await pieceService.updatePiece(id, req.body);
     if (!piece)
         return res.status(404).json({ message: 'piece non trouvée' });
+    if (piece.quantiteStock <= piece.seuilAlerte) {
+        await axios.post(`${process.env.NOTIFICATION_SERVICE}`, {
+            userId: '7',
+            type: 'warning',
+            title: 'Stock bas',
+            message: `${piece.nom} - Stock: ${piece.quantiteStock}`
+        });
+    }
     return res.status(200).json({ message: ' piece Mise A Jour avec Succées', piece });
 });
 router.delete('/:id', authenticate, async (req, res) => {

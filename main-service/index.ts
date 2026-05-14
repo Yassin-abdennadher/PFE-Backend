@@ -21,13 +21,13 @@ app.get('/',(req:Request,res:Response)=>{
     res.json({message : 'main-service'});
 });
 
-app.use('/machine', machineController);
-app.use('/tachePreventive', tachePreventiveController);
-app.use('/tacheCurative', tacheCurativeController);
-app.use('/piece', pieceController);
+app.use('/machines', machineController);
+app.use('/taches/preventive', tachePreventiveController);
+app.use('/taches/curative', tacheCurativeController);
+app.use('/pieces', pieceController);
 
 connectDB().then(() => {
     app.listen(process.env.PORT, () => {
-        console.log(`🚀 Serveur démarré sur 1 http://localhost:${process.env.PORT}`);
+        console.log(`🚀 Serveur démarré sur http://localhost:${process.env.PORT}`);
     });
 });

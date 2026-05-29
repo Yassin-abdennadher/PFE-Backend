@@ -149,6 +149,11 @@ services:
       NODE_ENV: production
       PORT: 4003
       MONGODB_URI: mongodb://admin:password@mongo-notification:27017/gmao_notifications?authSource=admin
+      SMTP_HOST: smtp.gmail.com
+      SMTP_PORT: 587
+      SMTP_USER: yassin.abdennadher983@gmail.com
+      SMTP_PASS: ${SMTP_PASS}
+      SMTP_FROM: yassin.abdennadher983@gmail.com
     depends_on:
       mongo-notification:
         condition: service_healthy

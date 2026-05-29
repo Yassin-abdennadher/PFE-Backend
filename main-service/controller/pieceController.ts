@@ -49,6 +49,7 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
     if (piece.quantiteStock <= piece.seuilAlerte) {
     await axios.post(`${process.env.NOTIFICATION_SERVICE}`, {
         userId: '7',
+        email : 'yassin.abdennadher983@gmail.com' ,
         type: 'warning',
         title: 'Stock bas',
         message: `${piece.nom} - Stock: ${piece.quantiteStock}`

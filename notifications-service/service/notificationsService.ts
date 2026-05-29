@@ -1,5 +1,6 @@
 import { Notification } from "../model/notifications.js";
 import { io } from '../index.js';
+import { sendEmail } from "./emailNotifService.js";
 
 export const createNotification = async (notif: any) => {
     try {
@@ -7,6 +8,7 @@ export const createNotification = async (notif: any) => {
         
         const notifToAdd = {
             userId: notif.userId,
+            email : notif.email , 
             type: notif.type || 'info',
             title: notif.title,
             message: notif.message,
@@ -15,6 +17,15 @@ export const createNotification = async (notif: any) => {
         };
         
         const notification = await Notification.create(notifToAdd);
+        console.log('✅ Notification stockée en base');
+        if(notifToAdd.type === 'warning' || notifToAdd.type === 'error'){
+            console.log('📧 Tentative envoi email à:', notifToAdd.email);
+            try{
+            await sendEmail(notifToAdd.email, notifToAdd.title, notifToAdd.message);
+            console.log('✅ Email envoyé avec succès');
+        }catch(emailError){
+            console.error('❌ Erreur envoi email:', emailError);
+        }}
         
         // Envoi temps réel via socket
         io.to(`user-${notif.userId}`).emit('new-notification', notification);

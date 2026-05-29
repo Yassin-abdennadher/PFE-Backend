@@ -21,7 +21,7 @@ mongoose.connect(process.env.MONGODB_URI)
 const server = createServer(app);
 const io = initSocket(server);
 server.listen(PORT, () => {
-    console.log(`🚀 Notification service sur port ${PORT}`);
+    console.log(`🚀 1 Notification service sur port ${PORT}`);
 });
 export { io };
 //# sourceMappingURL=index.js.map

@@ -31,7 +31,7 @@ const io = initSocket(server);
 
 
 server.listen(PORT, () => {
-    console.log(`🚀 Notification service sur port ${PORT}`);
+    console.log(`🚀 1 Notification service sur port ${PORT}`);
 });
 
 export { io };

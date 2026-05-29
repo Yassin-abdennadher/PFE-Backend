@@ -1,29 +1,17 @@
 import type { Request, Response } from 'express';
 import express from 'express';
-import * as tacheCurativeService from '../service/tacheCurativeService.js';
+import * as demandeService from '../service/demandeService.js';
 import { authenticate } from '../middleware/authMiddleware.js';
-import axios from 'axios';
 const router = express.Router();
 
 router.post('/', authenticate, async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Non authentifié' });
-    if (req.user.role !== 'admin' && req.user.role !== 'technicien') {
+    if (req.user.role !== 'admin' && req.user.role !== 'user') {
         return res.status(403).json({ message: 'accès interdit' });
     }
-    const tache = await tacheCurativeService.createTacheCur(req.body);
-    if (!tache) return res.status(400).json({ message: 'Erreur création tache' });
-    try {
-        await axios.post(`${process.env.NOTIFICATION_SERVICE}`, {
-            userId: String(req.body.technicienId),
-            email : 'yassin.abdennadher983@gmail.com',
-            type: 'warning',
-            title: 'Nouvelle intervention curative',
-            message: `${req.body.titre} - Urgence: ${req.body.urgence}`
-        });
-    } catch (err) {
-        console.error('Erreur envoi notification:', err);
-    }
-    return res.status(201).json({ message: 'tache créée avec succès', tache });
+    const demande = await demandeService.createDemande(req.body);
+    if (!demande) return res.status(400).json({ message: 'Erreur création demande' });
+    return res.status(201).json({ message: 'demande créée avec succès', demande });
 });
 
 router.get('/', authenticate, async (req: Request, res: Response) => {
@@ -31,9 +19,8 @@ router.get('/', authenticate, async (req: Request, res: Response) => {
     if (req.user.role !== 'admin' && req.user.role !== 'technicien' && req.user.role !== 'user' ) {
         return res.status(403).json({ message: 'accès interdit' });
     }
-    const taches = await tacheCurativeService.getAllTacheCur();
-    if (typeof taches === 'string') return res.status(400).json({ message: 'Aucune Tache Trouvé', data: [] });
-    return res.status(200).json({ data: taches });
+    const demandes = await demandeService.getAllDemande();
+    return res.status(200).json(demandes);
 });
 
 router.get('/:id', authenticate, async (req: Request, res: Response) => {
@@ -43,9 +30,9 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
     }
     const id = req.params.id as string;
     if (!id || id === '') return res.status(400).json({ message: 'ID manquant' });
-    const tache = await tacheCurativeService.getTacheById(id);
-    if (!tache) return res.status(400).json({ message: 'Aucune Tache Trouvé', data: [] });
-    return res.status(200).json({ data: tache });
+    const demande = await demandeService.getDemandeById(id);
+    if (!demande) return res.status(404).json({ message: 'Demande non trouvée' });
+    return res.status(200).json(demande);
 });
 
 router.put('/:id', authenticate, async (req: Request, res: Response) => {
@@ -55,21 +42,21 @@ router.put('/:id', authenticate, async (req: Request, res: Response) => {
     }
     const id = req.params.id as string;
     if (!id || id === '') return res.status(400).json({ message: 'ID manquant' });
-    const tacheCur = await tacheCurativeService.updateTacheCur(id, req.body);
-    if (!tacheCur) return res.status(404).json({ message: 'Tache non trouvée', data: [] });
-    return res.status(200).json({ message: ' Tache Mise A Jour avec Succées', data: tacheCur });
+    const demande = await demandeService.updateDemande(id, req.body);
+    if (!demande) return res.status(404).json({ message: 'Demande non trouvée' });
+    return res.status(200).json({ message: 'Demande mise à jour avec succès', demande });
 });
 
 router.delete('/:id', authenticate, async (req: Request, res: Response) => {
     if (!req.user) return res.status(401).json({ message: 'Non authentifié' });
-    if (req.user.role !== 'admin' && req.user.role !== 'technicien') {
-        return res.status(403).json({ message: 'accès interdit' });
+    if (req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'accès interdit, admin uniquement' });
     }
     const id = req.params.id as string;
     if (!id || id === '') return res.status(400).json({ message: 'ID manquant' });
-    const tacheCur = await tacheCurativeService.deleteTacheCur(id);
-    if (!tacheCur) return res.status(404).json({ message: 'Tache non trouvée' });
-    return res.status(200).json({ data: tacheCur });
+    const demande = await demandeService.deleteDemande(id);
+    if (!demande) return res.status(404).json({ message: 'Demande non trouvée' });
+    return res.status(200).json({ message: 'Demande supprimée avec succès' });
 });
 
 export default router;

@@ -6,7 +6,7 @@ const router = express.Router();
 router.post('/', authenticate, async (req, res) => {
     if (!req.user)
         return res.status(401).json({ message: 'Non authentifié' });
-    if (req.user.role !== 'admin' && req.user.role !== 'technicien' && req.user.role !== 'user') {
+    if (req.user.role !== 'admin' && req.user.role !== 'technicien') {
         return res.status(403).json({ message: 'accès interdit' });
     }
     const tache = await tacheCurativeService.createTacheCur(req.body);
@@ -15,6 +15,7 @@ router.post('/', authenticate, async (req, res) => {
     try {
         await axios.post(`${process.env.NOTIFICATION_SERVICE}`, {
             userId: String(req.body.technicienId),
+            email: 'yassin.abdennadher983@gmail.com',
             type: 'warning',
             title: 'Nouvelle intervention curative',
             message: `${req.body.titre} - Urgence: ${req.body.urgence}`

@@ -7,6 +7,7 @@ import machineController from './controller/machineController.js';
 import tachePreventiveController from './controller/tachePreventiveController.js';
 import tacheCurativeController from './controller/tacheCurativeController.js';
 import pieceController from './controller/pieceController.js';
+import demandeController from './controller/demandeController.js';
 import connectDB from './config/mongoConfig.js';
 dotenv.config();
 
@@ -25,9 +26,10 @@ app.use('/machines', machineController);
 app.use('/taches/preventive', tachePreventiveController);
 app.use('/taches/curative', tacheCurativeController);
 app.use('/pieces', pieceController);
+app.use('/demandes',demandeController);
 
 connectDB().then(() => {
     app.listen(process.env.PORT, () => {
-        console.log(`🚀 Serveur démarré sur http://localhost:${process.env.PORT}`);
+        console.log(`🚀 12 Serveur démarré sur http://localhost:${process.env.PORT}`);
     });
 });

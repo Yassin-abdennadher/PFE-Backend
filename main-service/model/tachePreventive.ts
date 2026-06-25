@@ -11,6 +11,8 @@ export interface ITachePreventive extends Document {
     dateProchaine: Date;
     dateDerniere?: Date;
     statut: 'planifiee' | 'en_cours' | 'terminee';
+    createdAt: Date;   // Ajouté automatiquement par timestamps: true
+    updatedAt: Date;   // Ajouté automatiquement par timestamps: true
 }
 
 const TachePreventiveSchema = new Schema<ITachePreventive>({

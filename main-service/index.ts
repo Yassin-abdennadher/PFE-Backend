@@ -5,10 +5,12 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import machineController from './controller/machineController.js';
 import tachePreventiveController from './controller/tachePreventiveController.js';
+import { regenererTachesPreventives } from './service/tachePreventiveService.js';
 import tacheCurativeController from './controller/tacheCurativeController.js';
 import pieceController from './controller/pieceController.js';
 import demandeController from './controller/demandeController.js';
 import connectDB from './config/mongoConfig.js';
+import cron from 'node-cron';
 dotenv.config();
 
 const app = express() ;
@@ -28,8 +30,13 @@ app.use('/taches/curative', tacheCurativeController);
 app.use('/pieces', pieceController);
 app.use('/demandes',demandeController);
 
+cron.schedule('* * * * *', async () => {
+  console.log('🔄 Régénération automatique des préventives...');
+  await regenererTachesPreventives();
+});
+
 connectDB().then(() => {
     app.listen(process.env.PORT, () => {
-        console.log(`🚀 12 Serveur démarré sur http://localhost:${process.env.PORT}`);
+        console.log(`🚀 Serveur démarré sur http://localhost:${process.env.PORT}`);
     });
 });

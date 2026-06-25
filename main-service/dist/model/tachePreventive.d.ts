@@ -10,6 +10,8 @@ export interface ITachePreventive extends Document {
     dateProchaine: Date;
     dateDerniere?: Date;
     statut: 'planifiee' | 'en_cours' | 'terminee';
+    createdAt: Date;
+    updatedAt: Date;
 }
 export declare const TachePreventive: mongoose.Model<ITachePreventive, {}, {}, {}, mongoose.Document<unknown, {}, ITachePreventive, {}, mongoose.DefaultSchemaOptions> & ITachePreventive & Required<{
     _id: mongoose.Types.ObjectId;

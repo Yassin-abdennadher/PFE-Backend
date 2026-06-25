@@ -1,3 +1,4 @@
+export declare const regenererTachesPreventives: () => Promise<number>;
 export declare const createTachePrev: (data: any) => Promise<any>;
 export declare const getAllTachePrev: () => Promise<any>;
 export declare const getTacheById: (id: string) => Promise<any>;
@@ -13,6 +14,8 @@ export declare const getTacheWithTechnicien: (id: string) => Promise<{
     dateProchaine: Date;
     dateDerniere?: Date;
     statut: "planifiee" | "en_cours" | "terminee";
+    createdAt: Date;
+    updatedAt: Date;
     _id: import("mongoose").Types.ObjectId;
     $locals: Record<string, unknown>;
     $op: "save" | "validate" | "remove" | null;
